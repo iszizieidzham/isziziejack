@@ -1,0 +1,26 @@
+#23April2021
+#3.51PM
+
+import pymongo
+
+myclient=''
+
+def connectmongo():
+    global myclient
+    #do a function to connect to your computer mongo DB
+    myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+    mydb = myclient["project"]
+    mycol = mydb["rfid_livestock"]
+    print("connected")
+    print(myclient.list_database_names())
+    return (mycol)
+def insertvalue(mytable):
+    global myclient
+    mydict = { "factory id": "1100", "serial number": "2626", "weight":"400" }
+
+    x = mytable.insert_one(mydict)
+
+mytable = connectmongo()
+insertvalue(mytable)
+#def insertvalue(self,weight,tagID)
+#do a function to insert value to mongo db
