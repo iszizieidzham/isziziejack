@@ -1,0 +1,247 @@
+
+
+import serial
+import codecs
+from sys import argv
+from os.path import exists
+import time
+from statistics import mean
+import re
+
+
+
+testcomport=['COM1','COM2','COM3','COM4','COM5','COM6','COM7','COM8','COM9','COM10']
+
+class SensorWeight:
+    baudrate=9600
+    comport=''
+    serialport=''
+    portisgood=0
+    
+    value_ave_final=0
+    value_ave_sum=0
+    value_ave_count=0
+    averageresultof=20
+    value_ave_array = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+
+    returnvalue_commonlen=13
+    returnvalue="0" #get from function readserial()
+    millislastread=time.process_time_ns()
+    connect_portinterger=0
+    connect_portinterger_max=10
+    def countaverage(self):
+        if len(self.value_ave_array) == 0:
+            avg=0
+        else:
+            avg = sum(self.value_ave_array) / len(self.value_ave_array) 
+        #print("Average is "+ str(avg))
+        return avg
+    def countmean(self):
+        countmean = mean(self.value_ave_array)
+        #print("Mean is" + str(countmean))
+        return countmean
+    def readserial(self):
+        value=self.serialport.readline()
+        self.serialport.reset_input_buffer()
+        newvalue=self.processresult(value)
+        #print("value is ..."+ str(newvalue)+"g")
+        #return value
+    def loop(self):
+        if self.serialport=='':
+            if self.connect() !=1:
+                return()
+        self.returnvalue=self.readserial()
+        #self.value_ave_array.insert(0,self.returnvalue) # add new result to index 0
+        #self.value_ave_array.pop(self.averageresultof)#pop the old last index
+        #print(self.returnvalue)
+        time.sleep(0.1)
+    def connect(self):
+        print("trying to connect to")
+        print(testcomport[self.connect_portinterger])
+        try:
+            self.serialport=serial.Serial(testcomport[self.connect_portinterger],9600)
+            print("using"+self.serialport.name)
+            return (1)
+        except :
+            print("Warning","cannot open")
+            self.connect_portinterger+=1
+            if self.connect_portinterger>= self.connect_portinterger_max:
+                self.connect_portinterger=0
+                time.sleep(1)
+    def printarray(self):
+        print(self.value_ave_array)
+        return()
+    def processresult(self,sensorresult):
+        x= sensorresult.decode()
+        if re.findall("[g]",str(sensorresult))==0:
+            print("wrong port,close now")
+            self.serialport.close()
+            self.serialport=''
+        #print(x)
+        filteredresult = int(re.search(r'\d+', x).group())
+        #if filteredresult != 0:
+            #print(filteredresult)
+
+        #length of sensor result
+        lengthofresult = len(sensorresult)
+        #print("length of result is")
+        #print(len(sensorresult))
+
+        if lengthofresult != self.returnvalue_commonlen:
+            return -1
+        return(filteredresult)
+
+    def CheckIsThisSnowScale(rawstr):
+        #if the rawstr contain character "g", then return 1 else return 0
+        #sensorresult="1100EE00E20043B0CB852489ECCA5CB8FBEF"
+        x = re.findall("[g]",rawstr)
+        if x:
+            return 1
+        else:
+            return 0
+
+
+class SensorRFID:
+    baudrate=57600
+    comport=''
+    serialport=''
+    portisgood=0
+    
+    value_ave_final=0
+    value_ave_sum=0
+    value_ave_count=0
+    averageresultof=20
+    value_ave_array = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    value_array=[]
+    
+    returnvalue_commonlen=72
+    returnvalue="" #get from function readserial()
+    millislastread=time.process_time_ns()
+    connect_portinterger=0
+    connect_portinterger_max=10
+    def countaverage(self):
+        if len(self.value_ave_array) == 0:
+            avg=0
+        else:
+            avg = sum(self.value_ave_array) / len(self.value_ave_array) 
+        #print("Average is "+ str(avg))
+        return avg
+    def countmean(self):
+        countmean = mean(self.value_ave_array)
+        #print("Mean is" + str(countmean))
+        return countmean
+    def readserial(self):
+        if self.serialport.inWaiting()<36:
+            return -1
+        value=self.serialport.read(36)
+        self.serialport.reset_input_buffer()
+        value=codecs.encode(value, 'hex')
+        newvalue=self.processresult(value)
+        millislastread=time.process_time_ns()
+        #print(newvalue)
+        #newvalue=self.processresult(value)
+        #print("value is ..."+ str(newvalue)+"g")
+        #return value
+    def loop(self):
+        if self.serialport=='':
+            if self.connect() !=1:
+                return()
+        self.returnvalue=convert_b_to_str(self.readserial())
+        #self.value_ave_array.insert(0,self.returnvalue) # add new result to index 0
+        #self.value_ave_array.pop(self.averageresultof)#pop the old last index
+        if self.returnvalue!= -1:
+            print(self.returnvalue)
+        time.sleep(0.1)
+    def connect(self):
+        print("trying to connect to")
+        print(testcomport[self.connect_portinterger])
+        try:
+            self.serialport=serial.Serial(testcomport[self.connect_portinterger],57600)
+            print("using"+self.serialport.name)
+            self.serialport.timeout=0.5
+            return (1)
+        except :
+            print("Warning","cannot open")
+            self.connect_portinterger+=1
+            if self.connect_portinterger>= self.connect_portinterger_max:
+                self.connect_portinterger=0
+                time.sleep(1)
+    def printarray(self):
+        print(self.value_ave_array)
+        return()
+    def processresult(self,sensorresult):
+        #sensorresult="1100EE00E20043B0CB852489ECCA5CB8FBEF"
+        if re.findall("[g]",str(sensorresult))==1:
+            #print("close now")
+            self.serialport.close()
+            self.serialport=''
+        #print(len(sensorresult))
+        if len(sensorresult) != self.returnvalue_commonlen:
+            return -1
+        #n  = 22
+        #for index in range(0, len(sensorresult), n):
+        #    self.value_array.append(sensorresult[index : index + n])
+        self.value_array.append([sensorresult[:22] , sensorresult[22:36]])
+        #print("  manufacturing id:        tag id:")
+        #print(self.value_array)
+
+    def convert_b_to_str(sensorresult):
+        #sensorresult=b'1100EE00E20043B0CB852489ECCA5CB8FBEF'
+            
+        # converting
+        newstring = sensorresult.decode()
+          
+        return newstring
+
+
+    
+
+
+#iszizie,  do a function to close the serial port for sensor class, I think is "close()"  https://pyserial.readthedocs.io/en/latest/pyserial_api.html
+
+
+
+
+
+
+        
+#testing
+snowscale=SensorWeight()
+wyuanrfid=SensorRFID()
+snowscale=SensorWeight()
+wyuanrfid.serialport=serial.Serial('COM3',57600)
+snowscale.serialport=serial.Serial('COM5',9600)
+mainloop=1
+while mainloop==1:
+    snowscale.loop()
+    print(".")
+        
+    if snowscale.returnvalue is not None:
+        if int(snowscale.returnvalue) >=0:
+            wyuanrfid.loop()
+            if snowscale.returnvalue !='':
+                print("weight now is " +snowscale.returnvalue + " and rfid tag is "+wyuanrfid.returnvalue)
+        
+
+
+#/////-----   setup
+#snowscale=SensorWeight()
+#mainloop=1
+
+#/////-----   loop    
+#while mainloop==1:
+#    snowscale.loop()
+
+
+#/////-----   closing
+#snowscale.close()
+#wyuanrfid.close()
+
+
+
+
+###
+#need to identify the sensor, is it weight or rfid
+
+
+    
