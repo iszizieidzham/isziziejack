@@ -43,6 +43,9 @@ class LivestockDb:
         #db = mongo.get_database("test")
         #db['dates'].insert({"date" : d})
 
+
+
+
 #testing
 dfgfghghjghhjg=0
 if dfgfghghjghhjg==1:    
@@ -58,6 +61,8 @@ if dfgfghghjghhjg==1:
 #### categorize cow by weight
 categorizeweight=0
 if categorizeweight==1:
+    mongodatabase=LivestockDb()      
+    mongodatabase.connectmongo()
     myquery={"weight":{ "$lt" : 800, "$gt" : 300}}
     mydoc=mongodatabase.mytable.find(myquery)
     for x in mydoc:
@@ -94,17 +99,20 @@ if export==1:
 
         
 #### find cow by ID
-findcowbyid=0
+findcowbyid=1
 if findcowbyid==1:
-
-    myquery={"factory id": "1100ee00e20043b0cc8587" ,"serial number": "09eccd21b0ee35"}
-    mydoc=mongodatabase.mytable.find(myquery)
+    mongodatabase=LivestockDb()      
+    mongodatabase.connectmongo()
+    myquery={"factory id": "1100ee00e20043b0cb8466" ,"serial number": "c9ecca59c1752b"}
+    mydoc=mongodatabase.mytable.find(myquery).sort('serial number', -1)
     for x in mydoc:
       print(x)
-  
+      
 #### find cow by gate ID
 findcowbygate=0
 if findcowbygate==1:
+    mongodatabase=LivestockDb()      
+    mongodatabase.connectmongo()
     myquery={"gate id": "15"}
     mydoc=mongodatabase.mytable.find(myquery)
     for x in mydoc:
@@ -119,6 +127,9 @@ if findcowbygate==1:
 #for x in mydoc:
   #print(x)
     
+    
+
+
     
 
 
