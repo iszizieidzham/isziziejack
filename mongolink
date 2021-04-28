@@ -1,5 +1,5 @@
-#27April2021
-#11.21am
+#28April2021
+#11.14 am
 
 import pymongo
 import csv
@@ -15,12 +15,14 @@ class LivestockDb:
         self.myclient = pymongo.MongoClient("mongodb://localhost:27017/")
         self.mydb = self.myclient["project"]
         self.mytable = self.mydb["rfid_livestock"]
+        self.mytablecow = self.mydb["rfid_cow"]
+        self.mytablelocation = self.mydb["location"]
         print("connected")
         print(self.myclient.list_database_names())
         return()
-    def insertvalue(self,factory_id, serial_number, weight, gate_id):
+    def insertvalue(self,factory_id, serial_number, weight, gate_id,dtime):
         self.connectmongo()
-        mydict = { "factory id": factory_id, "serial number": serial_number, "weight": weight , "gate id": gate_id}
+        mydict = { "factory id": factory_id, "serial number": serial_number, "weight": weight , "gate id": gate_id,"record time":dtime}
         x = self.mytable.insert_one(mydict)
         return(x)
     def exportdata():
@@ -99,12 +101,12 @@ if export==1:
 
         
 #### find cow by ID
-findcowbyid=1
+findcowbyid=0
 if findcowbyid==1:
     mongodatabase=LivestockDb()      
     mongodatabase.connectmongo()
     myquery={"factory id": "1100ee00e20043b0cb8466" ,"serial number": "c9ecca59c1752b"}
-    mydoc=mongodatabase.mytable.find(myquery).sort('serial number', -1)
+    mydoc=mongodatabase.mytable.find(myquery).sort('_id', -1)
     for x in mydoc:
       print(x)
       
@@ -113,21 +115,82 @@ findcowbygate=0
 if findcowbygate==1:
     mongodatabase=LivestockDb()      
     mongodatabase.connectmongo()
-    myquery={"gate id": "15"}
-    mydoc=mongodatabase.mytable.find(myquery)
+    myquery={"gate id": 9}
+    mydoc=mongodatabase.mytable.find.distinct(myquery)
     for x in mydoc:
       print(x)
 
+#### total difference number of cow that pass by gate id 
+totalcowpass=0
+if totalcowpass==1:
+    mongodatabase=LivestockDb()      
+    mongodatabase.connectmongo()
+    mydoc = mongodatabase.mytable.distinct("serial number",{"gate id":12})
 
-  
+    for x in mydoc:
+          print(x)
+    tot = len(mydoc)
+    print("Total cow at the gate is",tot)
 
-#db.inventory.find( { qty: { $gt: 20 } } )
-#mydoc = mongodatabase.mytable.find(mytable)
 
-#for x in mydoc:
-  #print(x)
+
+#### table for cow nicknames and remarks
+mongodatabase=LivestockDb()      
+mongodatabase.connectmongo()
+factory_id = "1100"
+serial_number = "2938"
+cow_nickname= "cow1"
+cow_remarks= "muscular, just vaccinated"
+
+mydict = { "factory id": factory_id, "serial number": serial_number, "cow nickname": cow_nickname, "cow remarks":cow_remarks}
+x = mongodatabase.mytablecow.insert_one(mydict)
+
+
+
+#### table for gate id and location remarks
+mongodatabase=LivestockDb()      
+mongodatabase.connectmongo()
+gate_id=9
+location_remarks= "pantry sofa"
+mydict = { "gate id": gate_id, "location remarks":location_remarks}
+x = mongodatabase.mytablelocation.insert_one(mydict)
+
+
+#### to print list/array  to html table format
+
+
+mongodatabase=LivestockDb()      
+mongodatabase.connectmongo()
+mydoc = mongodatabase.mytable.find()
+
+
+print("html table is")
+longstring="<tr>"
+longstring=""
+for x in mydoc:
+    #print(x[colunm name 1])
+    #print("-------------")
     
+    for key, value in x.items():
+        longstring=longstring+"<td>"+ str(x[key])+"</td>"
     
+    longstring=longstring+"</tr>"
+print(longstring)
+
+
+##<tr><td>ObjectId('6087cbe648abde1e92bf0f45')</td><td>1100ee00e20043b0cc84bb</td><td>49eccd1e815d88</td><td>72440</td><td>16</td><td>2021-04-27 16:31:31.168112</td></tr>
+##<tr><td>ObjectId('6087cbe648abde1e92bf0f45')</td><td>1100ee00e20043b0cc84bb</td><td>49eccd1e815d88</td><td>72440</td><td>16</td><td>2021-04-27 16:31:31.168112</td></tr>
+##<tr><td>ObjectId('6087cbe648abde1e92bf0f45')</td><td>1100ee00e20043b0cc84bb</td><td>49eccd1e815d88</td><td>72440</td><td>16</td><td>2021-04-27 16:31:31.168112</td></tr>
+
+
+
+
+
+
+
+
+
+   
 
 
     
