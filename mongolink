@@ -1,11 +1,13 @@
 #28April2021
-#11.14 am
+#4.33pm
 
 import pymongo
 import csv
 import sys
 import datetime
+from datetime import datetime
 
+#print ("ttttttttttttttttttttttttttttt")
 class LivestockDb:
     myclient=''
     mydb=''
@@ -16,35 +18,107 @@ class LivestockDb:
         self.mydb = self.myclient["project"]
         self.mytable = self.mydb["rfid_livestock"]
         self.mytablecow = self.mydb["rfid_cow"]
-        self.mytablelocation = self.mydb["location"]
-        print("connected")
-        print(self.myclient.list_database_names())
+        self.tablefieldname=['_id', 'factory id','serial number', 'weight','gate id']
+        print("connected to db")
+        #print(self.myclient.list_database_names())
         return()
     def insertvalue(self,factory_id, serial_number, weight, gate_id,dtime):
         self.connectmongo()
         mydict = { "factory id": factory_id, "serial number": serial_number, "weight": weight , "gate id": gate_id,"record time":dtime}
         x = self.mytable.insert_one(mydict)
         return(x)
-    def exportdata():
-        x=5
+    
+    def exportdata(newfilename,newlist):        
+        import pandas as pd
+        #newlist = self.mytable.find()
+        df = pd.DataFrame(newlist, columns= self.tablefieldname)
+        df.to_csv (r'C:\Users\iszizie.idzham\Desktop\python files\\'+newfilename+'.csv', index = False, header=True)
+                   
     def search_cow_by_factory_serial(self,factory_id,serial_number):
         self.connectmongo()
-        #iszizie, change this->
+        #myquery={"factory id": "1100ee00e20043b0cc8587" ,"serial number": "09eccd21b0ee35"}
         myquery={"factory id": factory_id, "serial number": serial_number}
-        return(mongodatabase.mytable.find(myquery))
+        mydoc=mongodatabase.mytable.find(myquery).limit(1)
+        for x in mydoc:
+          print(x)
+        #myquery={"factory id": factory_id, "serial number": serial_number}
+        #return(mongodatabase.mytable.find(myquery))
+    def search_cow_by_weight(self,minimum_weight,maximum_weight):
+    
+        #iszizie, don't let it count same cow twice
+    
+        myquery={"weight":{ "$gt" : minimum_weight, "$lt" : maximum_weight}}
+        mydoc=mongodatabase.mytable.find(myquery)
+        for x in mydoc:
+          print(x)
+    #### total difference number of cow that pass by gate id 
+##    def list_all_cow_in_grassarea(gateid_in,gateid_out):
+##        gateid_in=15
+##        gateid_out=16
+##        mydoc = mongodatabase.mytable.distinct("factory id","serial number",{"gate id":gateid_in})
+##
+##        for x in mydoc:
+##          print(x)
+##        totalx = len(mydoc)
+##        
+##        mydoc = mongodatabase.mytable.distinct("factory id","serial number",{"gate id":gateid_out})
+##
+##        for x in mydoc:
+##          print(x)
+##        totaly = len(mydoc)
+##        print("Total cow at the grassarea3=",(totalx-totaly))
         
 
-    #mongodatabase=LivestockDb()      
-    #mongodatabase.connectmongo()
-#print(ObjectId("60863591655e02a510c4966d").getTimestamp())
-    #mongodatabase.mytable.insert({ 'created_on' : new Date() })
 
-    #d = datetime.datetime.strptime("2017-10-13T10:53:53.000Z", "%Y-%m-%dT%H:%M:%S.000Z")
+    def convert_list_to_htmltable(longlist):
+        #### to print list/array  to html table format
+        longstring="<tr>"
+        for x in longlist:
+            for key, value in x.items():
+                longstring=longstring+"<td>"+ str(x[key])+"</td>"
+        longstring=longstring+"</tr>"
+        #print(longstring)
+        return(longstring)
 
-    #with MongoClient() as mongo:
-        #db = mongo.get_database("test")
-        #db['dates'].insert({"date" : d})
+    def get_day_from_datetimeobj(self,newdt):
+        #newdt="2021-04-28 12:31:25.572746"
+        date_time_obj = datetime.strptime(newdt,'%Y-%m-%d %H:%M:%S.%f')
+        #print ("The type of the date is now",  type(date_time_obj))
+        #print ("The date is", date_time_obj.day)
+        return(date_time_obj.day)
 
+
+    def get_month_from_datetimeobj(self,newdt):
+        date_time_obj = datetime.strptime(newdt,'%Y-%m-%d %H:%M:%S.%f')
+        #print ("The month is", date_time_obj.month)
+        return(date_time_obj.month)
+
+    def get_year_from_datetimeobj(self,newdt):
+        date_time_obj = datetime.strptime(newdt,'%Y-%m-%d %H:%M:%S.%f')
+        #print ("The year is", date_time_obj.year)
+        return(date_time_obj.year)
+
+    def get_hour_from_datetimeobj(self,newdt):
+        date_time_obj = datetime.strptime(newdt,'%Y-%m-%d %H:%M:%S.%f')
+        #print ("The hour is", date_time_obj.hour)
+        return(date_time_obj.hour)
+
+    def get_minute_from_datetimeobj(self,newdt):
+        date_time_obj = datetime.strptime(newdt,'%Y-%m-%d %H:%M:%S.%f')
+        #print ("The minute is", date_time_obj.minute)
+        return(date_time_obj.minute)
+
+    def get_second_from_datetimeobj(self,newdt):
+        date_time_obj = datetime.strptime(newdt,'%Y-%m-%d %H:%M:%S.%f')
+        #print ("The second is", date_time_obj.second)
+        return(date_time_obj.second)
+
+    ##get_day_from_datetimeobj("2021-04-28 12:31:25.572746")
+    ##get_month_from_datetimeobj("2021-04-28 12:31:25.572746")
+    ##get_year_from_datetimeobj("2021-04-28 12:31:25.572746")
+    ##get_hour_from_datetimeobj("2021-04-28 12:31:25.572746")
+    ##get_minute_from_datetimeobj("2021-04-28 12:31:25.572746")
+    ##get_second_from_datetimeobj("2021-04-28 12:31:25.572746")
 
 
 
@@ -60,127 +134,107 @@ if dfgfghghjghhjg==1:
     #x = self.mytable.insert_one(mydict)
     #mongodatabase.insertvalue("11100","2701",410,15,"dtime": new Timestamp())
 
-#### categorize cow by weight
-categorizeweight=0
-if categorizeweight==1:
-    mongodatabase=LivestockDb()      
-    mongodatabase.connectmongo()
-    myquery={"weight":{ "$lt" : 800, "$gt" : 300}}
+
+
+        
+
+#### find cow by gate ID
+findcowbygate=0
+if findcowbygate==1:
+    myquery={"gate id": "15"}
     mydoc=mongodatabase.mytable.find(myquery)
     for x in mydoc:
       print(x)
 
 
-#### export data
-abc=0
-if abc==1:
-    mongodatabase=LivestockDb()      
-    mongodatabase.connectmongo()
-    field_names = ['_id', 'factory id', 'serial number', 'weight','gate id']
-    mydoc = mongodatabase.mytable.find()
-    
-    with open('new.csv','w') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames = field_names)
-        writer.writeheader()
-        writer.writerows(mydoc)
-
-
-#### export data version 2 (without new lines)
-export=0
-if export==1:
-    import pandas as pd
-
-    mongodatabase=LivestockDb()      
-    mongodatabase.connectmongo()
-    mydoc = mongodatabase.mytable.find()
-    df = pd.DataFrame(mydoc, columns= ['_id', 'factory id', 'serial number', 'weight','gate id'])
-
-    df.to_csv (r'C:\Users\iszizie.idzham\Desktop\python files\rfid.csv', index = False, header=True)
-
-    print (df)
-
-        
-#### find cow by ID
-findcowbyid=0
-if findcowbyid==1:
-    mongodatabase=LivestockDb()      
-    mongodatabase.connectmongo()
-    myquery={"factory id": "1100ee00e20043b0cb8466" ,"serial number": "c9ecca59c1752b"}
-    mydoc=mongodatabase.mytable.find(myquery).sort('_id', -1)
-    for x in mydoc:
-      print(x)
-      
-#### find cow by gate ID
-findcowbygate=0
-if findcowbygate==1:
-    mongodatabase=LivestockDb()      
-    mongodatabase.connectmongo()
-    myquery={"gate id": 9}
-    mydoc=mongodatabase.mytable.find.distinct(myquery)
-    for x in mydoc:
-      print(x)
-
-#### total difference number of cow that pass by gate id 
-totalcowpass=0
-if totalcowpass==1:
-    mongodatabase=LivestockDb()      
-    mongodatabase.connectmongo()
-    mydoc = mongodatabase.mytable.distinct("serial number",{"gate id":12})
-
-    for x in mydoc:
-          print(x)
-    tot = len(mydoc)
-    print("Total cow at the gate is",tot)
 
 
 
-#### table for cow nicknames and remarks
-mongodatabase=LivestockDb()      
-mongodatabase.connectmongo()
-factory_id = "1100"
-serial_number = "2938"
-cow_nickname= "cow1"
-cow_remarks= "muscular, just vaccinated"
 
-mydict = { "factory id": factory_id, "serial number": serial_number, "cow nickname": cow_nickname, "cow remarks":cow_remarks}
-x = mongodatabase.mytablecow.insert_one(mydict)
-
-
-
-#### table for gate id and location remarks
-mongodatabase=LivestockDb()      
-mongodatabase.connectmongo()
-gate_id=9
-location_remarks= "pantry sofa"
-mydict = { "gate id": gate_id, "location remarks":location_remarks}
-x = mongodatabase.mytablelocation.insert_one(mydict)
+##
+##
+##
+###### table for gate id and location remarks
+##mongodatabase=LivestockDb()      
+##mongodatabase.connectmongo()
+##gate_id=9
+##location_remarks= "pantry sofa"
+##mydict = { "gate id": gate_id, "location remarks":location_remarks}
+##x = mongodatabase.mytablelocation.insert_one(mydict)
 
 
-#### to print list/array  to html table format
+
+##mongodatabase=LivestockDb()      
+##mongodatabase.connectmongo()
+##mydoc=mongodatabase.mytable.find()
+
+##for x in mydoc:
+##    factory_id=x["factory id"]
+##    serial_id=x["serial number"]
+##    cow_id=factory_id+serial_id
+##    gate_id=0
+##    try:
+##        gate_id=x["gate id"]
+##    except:
+##        p=0
+##    newdt="2021-04-20 12:31:25.572746"
+##    try:
+##        newdt=x["record time"]
+##    except:
+##        p=0
+##    print(newdt)
+##    tsec=mongodatabase.get_second_from_datetimeobj(newdt)
+##    tmin=mongodatabase.get_minute_from_datetimeobj(newdt)
+##    thour=mongodatabase.get_hour_from_datetimeobj(newdt)
+##    tday=mongodatabase.get_day_from_datetimeobj(newdt)
+##    tmonth=mongodatabase.get_month_from_datetimeobj(newdt)
+##    tyear=mongodatabase.get_year_from_datetimeobj(newdt)
+##    #then insert to database with cow remarks and cow nickname
+##    mydict = { "factory id": factory_id, "serial number": serial_id,"cow id":cow_id, "cow nickname": "", "cow remarks":"",
+##               "tsec":int(tsec),"tmin":int(tmin), "thour": int(thour), "tday":int(tday),"tmonth":int(tmonth),"tyear":int(tyear),"gate id": gate_id}
+##    mongodatabase.mytablecow.insert_one(mydict)
 
 
-mongodatabase=LivestockDb()      
-mongodatabase.connectmongo()
-mydoc = mongodatabase.mytable.find()
 
 
-print("html table is")
-longstring="<tr>"
-longstring=""
-for x in mydoc:
-    #print(x[colunm name 1])
-    #print("-------------")
-    
-    for key, value in x.items():
-        longstring=longstring+"<td>"+ str(x[key])+"</td>"
-    
-    longstring=longstring+"</tr>"
-print(longstring)
 
 
-##<tr><td>ObjectId('6087cbe648abde1e92bf0f45')</td><td>1100ee00e20043b0cc84bb</td><td>49eccd1e815d88</td><td>72440</td><td>16</td><td>2021-04-27 16:31:31.168112</td></tr>
-##<tr><td>ObjectId('6087cbe648abde1e92bf0f45')</td><td>1100ee00e20043b0cc84bb</td><td>49eccd1e815d88</td><td>72440</td><td>16</td><td>2021-04-27 16:31:31.168112</td></tr>
-##<tr><td>ObjectId('6087cbe648abde1e92bf0f45')</td><td>1100ee00e20043b0cc84bb</td><td>49eccd1e815d88</td><td>72440</td><td>16</td><td>2021-04-27 16:31:31.168112</td></tr>
+##
+##mongodatabase=LivestockDb()      
+##mongodatabase.connectmongo()  
+##gateid_in=11
+##gateid_out=16
+##mydoc = mongodatabase.mytablecow.find({"gate id":gateid_in, "tday":20
+##                                       ,"tmonth":4}    ,{"_id":0,"cow id":1,"gate id":1})
+###mydoc = mongodatabase.mytable.find({}).distinct("record time")
+##for x in mydoc:
+##    print(x)
+
+#seach record sort by new to old, and then limit(1)
+#cow id=factory+serial
+#cow id,last seen at gate id,
+
+#mydoc = mongodatabase.mytable.find({"factory id":"serial number"}).distinct({"gate id":gateid_in})
+#mydoc = mongodatabase.mytable.find({}).distinct("gate id")
+#tags = db.mycoll.find({"category": "movie"}).distinct("tags")
+#myquery={"gate id": "15"}
+##mydoc = mongodatabase.mytable.distinct("serial number",{"gate id":gateid_out})
+##
+##for x in mydoc:
+##    print(x)
+##    mydoc2 = mongodatabase.mytable.find({"serial number":x},{"_id":0,"factory id":1,"serial number":1}).limit(1)
+##    for x2 in mydoc2:
+##        print(x2)    
+##    
+#totalx = len(mydoc)
+
+#mydoc = mongodatabase.mytable.distinct("factory id","serial number",{"gate id":gateid_out})
+
+#for x in mydoc:
+ # print(x)
+#totaly = len(mydoc)
+#print("Total cow at the grassarea3=",(totalx-totaly))
+
 
 
 
